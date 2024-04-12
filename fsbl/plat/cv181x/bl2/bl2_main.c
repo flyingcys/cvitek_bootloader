@@ -103,6 +103,25 @@ void bl2_main(void)
 
 	load_ddr();
 
+#ifdef ENABLE_JTAG_DEBUG
+	/* If GP15's value is high, enter debug mode. */
+	if (mmio_read_32(GPIO_BASE + 0x050) & (1 << 15)) {
+		NOTICE("=========================================\n");
+		NOTICE("||             Debug Mode              ||\n");
+		NOTICE("||                                     ||\n");
+		NOTICE("||  Please use uart4 for serial out,   ||\n");
+		NOTICE("|| and remove serial tool from uart1.  ||\n");
+		NOTICE("=========================================\n");
+
+		mmio_setbits_32(0x3003024, 1 << 6);	/* reset the small core */
+
+		/* pinmux was set for jtag by default */
+
+		while(1)
+			;
+	}
+#endif
+
 #ifdef OD_CLK_SEL
 	mode = CLK_OD;
 #else

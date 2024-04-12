@@ -4,6 +4,13 @@
 #include <bl2.h>
 #include <string.h>
 #include <delay_timer.h>
+#include <cv180x_pinlist_swconfig.h>
+#include <cv180x_reg_fmux_gpio.h>
+
+#define PINMUX_CONFIG(PIN_NAME, FUNC_NAME) \
+	mmio_clrsetbits_32(PINMUX_BASE + FMUX_GPIO_FUNCSEL_##PIN_NAME, \
+		FMUX_GPIO_FUNCSEL_##PIN_NAME##_MASK << FMUX_GPIO_FUNCSEL_##PIN_NAME##_OFFSET, \
+		PIN_NAME##__##FUNC_NAME)
 
 #ifdef RTOS_ENABLE_FREERTOS
 int init_comm_info(int ret)
@@ -95,6 +102,30 @@ void bl2_main(void)
 	set_rtc_en_registers();
 
 	load_ddr();
+
+#ifdef ENABLE_JTAG_DEBUG
+	/* If GP15's value is high, enter debug mode. */
+	if (mmio_read_32(GPIO_BASE + 0x050) & (1 << 15)) {
+		NOTICE("=========================================\n");
+		NOTICE("||             Debug Mode              ||\n");
+		NOTICE("||                                     ||\n");
+		NOTICE("||  Please use uart4 for serial out,   ||\n");
+		NOTICE("|| and remove serial tool from uart1.  ||\n");
+		NOTICE("=========================================\n");
+
+		mmio_setbits_32(0x3003024, 1 << 6);	/* reset the small core */
+
+		/* set pinmux for jtag */
+		PINMUX_CONFIG(UART0_TX, JTAG_TMS);
+		PINMUX_CONFIG(UART0_RX, JTAG_TCK);
+		PINMUX_CONFIG(IIC0_SCL, JTAG_TDI);
+		PINMUX_CONFIG(IIC0_SDA, JTAG_TDO);
+
+		while(1)
+			;
+	}
+#endif
+
 #ifdef OD_CLK_SEL
 	load_rest_od_sel();
 #else

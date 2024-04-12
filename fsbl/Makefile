@@ -176,6 +176,10 @@ ifeq ($(OD_CLK_SEL),y)
 $(eval $(call add_define,OD_CLK_SEL))
 endif
 
+ifeq ($(ENABLE_JTAG_DEBUG),y)
+$(eval $(call add_define,ENABLE_JTAG_DEBUG))
+endif
+
 $(eval $(call add_define,FSBL_SECURE_BOOT_SUPPORT))
 $(eval $(call add_define, USB_DL_BY_FSBL))
 

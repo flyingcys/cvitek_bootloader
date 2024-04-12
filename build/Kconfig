@@ -341,6 +341,12 @@ config VC_CLK_OVERDRIVE
 	help
 	  "y" Select to build fip.bin with VC clock overdrived setting
 
+config ENABLE_JTAG_DEBUG
+	bool "Enable jtag debug support"
+	default n
+	help
+	  "y" Enable jtag debug support
+
 endmenu
 
 menu "Storage settings"
